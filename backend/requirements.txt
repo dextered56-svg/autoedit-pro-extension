@@ -1,0 +1,12 @@
+fastapi==0.103.1
+uvicorn==0.23.2
+pydantic==2.3.0
+librosa==0.10.1
+pydub==0.25.1
+openai-whisper==20230918
+opencv-python==4.8.0.76
+mediapipe==0.10.3
+pyannote.audio==3.0.1
+pyinstaller==6.0.0
+better_profanity==0.7.0
+scikit-learn==1.3.0

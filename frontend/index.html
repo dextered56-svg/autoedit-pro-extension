@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AutoEdit Pro</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #323232;
+            color: #ffffff;
+            margin: 0;
+            padding: 10px;
+        }
+        button {
+            background-color: #2a76d2;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #1a56a2;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #555;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        input {
+            width: calc(100% - 10px);
+            margin-bottom: 10px;
+            background: #444;
+            color: #fff;
+            border: 1px solid #222;
+            padding: 4px;
+        }
+        #status {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>AutoEdit Pro</h2>
+
+    <div class="section">
+        <h3>1. Silence Removal</h3>
+        <label>Noise Floor (dB)</label>
+        <input type="number" id="noiseFloor" value="-40">
+        <label>Min Silence (ms)</label>
+        <input type="number" id="minSilence" value="500">
+        <button id="btnSilence">Remove Silence</button>
+    </div>
+
+    <div class="section">
+        <h3>2. Visual Auto-Zoom</h3>
+        <button id="btnVisual">Auto-Zoom (9:16)</button>
+    </div>
+
+    <div class="section">
+        <h3>3. Multi-Cam Switch</h3>
+        <button id="btnMulticam">Switch Multi-Cam</button>
+    </div>
+
+    <div class="section">
+        <h3>4. Auto-Captions</h3>
+        <button id="btnCaptions">Generate Captions</button>
+    </div>
+
+    <div id="status">Ready</div>
+
+    <!-- Include Adobe CSInterface library if you had it, for now we will stub it or require it -->
+    <script src="js/CSInterface.js"></script> <!-- Placeholder -->
+    <script src="js/main.js"></script>
+</body>
+</html>
