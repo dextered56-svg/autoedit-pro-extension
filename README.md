@@ -51,10 +51,10 @@ Copy or symlink the `frontend` folder into the Premiere Pro extensions directory
 
 ## 3. Testing the Bridge
 
-1. **Start the Backend**: Run the compiled executable or run `python main.py` in the `backend` folder.
-2. **Open Premiere Pro**: Create a project and add a sequence with some media.
-3. **Open the Extension**: Go to `Window > Extensions > AutoEdit Pro`.
-4. **Test an Action**: Click "Remove Silence" in the panel.
+1. **Open Premiere Pro**: Create a project and add a sequence with some media.
+2. **Open the Extension**: Go to `Window > Extensions > AutoEdit Pro`.
+    - Note: The extension will automatically spawn the AI backend daemon in the background using Node.js when opened. You will see the status change to "AI Backend Ready".
+3. **Test an Action**: Click "Remove Silence" in the panel.
    - The frontend (`main.js`) will send a REST request to `http://127.0.0.1:8000/api/detect_silence`.
    - The backend processes the dummy data and returns JSON with cut timecodes in seconds.
    - The frontend receives this JSON and calls `applyCuts()` in `host.jsx`.

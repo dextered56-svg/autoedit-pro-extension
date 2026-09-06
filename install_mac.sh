@@ -1,46 +1,59 @@
 #!/bin/bash
 
-# AutoEdit Pro - Mac Installer Script
+# AutoEdit Pro - One-Click Mac Installer
+set -e
 
 echo "======================================="
-echo "   Installing AutoEdit Pro (Mac)       "
+echo "   AutoEdit Pro Mac Installer          "
 echo "======================================="
 
-# 1. Build the Backend
-echo "\n[1/3] Building the Python Backend..."
-cd backend
-if [ -f "requirements.txt" ]; then
-    echo "Installing Python dependencies..."
-    pip install -r requirements.txt
-fi
-
-echo "Compiling via PyInstaller..."
-chmod +x build.sh
-./build.sh
-cd ..
-
-echo "\n[2/3] Installing Adobe CEP Extension..."
-# 2. Install the Frontend Extension
+# Set up paths
+ROOT_DIR="$(pwd)"
+BACKEND_DIR="$ROOT_DIR/backend"
+FRONTEND_DIR="$ROOT_DIR/frontend"
 CEP_DIR="$HOME/Library/Application Support/Adobe/CEP/extensions/com.autoeditpro.extension"
 
-echo "Creating extension directory at: $CEP_DIR"
+echo "-> [1/4] Setting up Python environment..."
+cd "$BACKEND_DIR"
+# Create a temporary venv to keep user's system clean during build
+python3 -m venv build_venv
+source build_venv/bin/activate
+pip install -r requirements.txt > /dev/null 2>&1
+
+echo "-> [2/4] Compiling AI Backend (This may take a few minutes)..."
+# Compile as a single file (--onefile) to make it portable and clean
+pyinstaller --noconfirm --onefile --console --name "AutoEditPro_Daemon" \
+  --add-data "modules:modules" \
+  --hidden-import "whisper" \
+  --hidden-import "pyannote.audio" \
+  main.py > /dev/null 2>&1
+
+echo "-> [3/4] Bundling Application..."
+# Create a bin folder in frontend to hold the backend daemon
+mkdir -p "$FRONTEND_DIR/bin"
+cp "dist/AutoEditPro_Daemon" "$FRONTEND_DIR/bin/"
+
+# Clean up build artifacts
+rm -rf build_venv build dist AutoEditPro_Daemon.spec
+cd "$ROOT_DIR"
+
+echo "-> [4/4] Installing Adobe Extension..."
+# Remove old installation if exists
+rm -rf "$CEP_DIR"
 mkdir -p "$CEP_DIR"
 
-echo "Copying frontend files..."
-cp -R frontend/* "$CEP_DIR/"
+# Copy the bundled frontend (which now includes the backend executable)
+cp -R "$FRONTEND_DIR"/* "$CEP_DIR/"
 
-# 3. Enable PlayerDebugMode (macOS)
-echo "\n[3/3] Enabling PlayerDebugMode for unsigned extensions..."
-# Loop through CSXS versions 9 to 16 to ensure compatibility with recent Premiere Pro versions
+# Enable PlayerDebugMode for CC2019 through CC2024
 for i in {9..16}; do
     defaults write com.adobe.CSXS.$i PlayerDebugMode 1
-    echo "Enabled for CSXS.$i"
 done
 
 echo "======================================="
 echo "   Installation Complete!              "
 echo "======================================="
-echo "To use AutoEdit Pro:"
-echo "1. Run the backend daemon: ./backend/dist/AutoEditPro_Daemon"
-echo "2. Open Adobe Premiere Pro."
-echo "3. Go to Window > Extensions > AutoEdit Pro."
+echo "The backend daemon is now bundled inside the extension."
+echo "You can now open Adobe Premiere Pro."
+echo "Go to Window > Extensions > AutoEdit Pro."
+echo "The backend server will start automatically!"

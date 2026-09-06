@@ -1,7 +1,18 @@
+// Initialize Node.js dependencies
+let child_process = null;
+let path = null;
+if (typeof require !== 'undefined') {
+    child_process = require('child_process');
+    path = require('path');
+}
+
 // Initialize Adobe CSInterface
 let csInterface;
+let backendProcess = null;
+
 try {
     csInterface = new CSInterface();
+    startBackendDaemon();
 } catch (e) {
     // Mock CSInterface if not available (for testing outside Premiere)
     class MockCSInterface {
@@ -16,6 +27,54 @@ const API_URL = "http://127.0.0.1:8000/api";
 
 function updateStatus(msg) {
     document.getElementById('status').innerText = msg;
+}
+
+function startBackendDaemon() {
+    if (!child_process || !path) {
+        console.warn("Node.js is not enabled in CEP. Cannot auto-start backend.");
+        updateStatus("Warning: Node.js disabled. Start backend manually.");
+        return;
+    }
+
+    const extensionPath = csInterface.getSystemPath(SystemPath.EXTENSION);
+    const isMac = csInterface.getOSInformation().indexOf("Mac") >= 0;
+
+    // Path to the bundled executable
+    const executableName = isMac ? "AutoEditPro_Daemon" : "AutoEditPro_Daemon.exe";
+    const daemonPath = path.join(extensionPath, "bin", executableName);
+
+    updateStatus("Starting AI Backend Server...");
+
+    // Spawn the Python FastAPI backend
+    backendProcess = child_process.spawn(daemonPath, [], {
+        cwd: path.join(extensionPath, "bin"),
+        detached: true
+    });
+
+    backendProcess.stdout.on('data', (data) => {
+        console.log(`Backend: ${data}`);
+        if (data.toString().includes('Application startup complete')) {
+            updateStatus("AI Backend Ready");
+        }
+    });
+
+    backendProcess.stderr.on('data', (data) => {
+        console.error(`Backend Error: ${data}`);
+    });
+
+    backendProcess.on('close', (code) => {
+        console.log(`Backend process exited with code ${code}`);
+        updateStatus(`Backend disconnected (code ${code})`);
+    });
+}
+
+// Clean up backend process when panel closes
+if (typeof window !== 'undefined') {
+    window.addEventListener("beforeunload", () => {
+        if (backendProcess) {
+            backendProcess.kill();
+        }
+    });
 }
 
 document.getElementById('btnSilence').addEventListener('click', async () => {
